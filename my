@@ -1,0 +1,80 @@
+class TodoItem {
+    constructor(title, description) {
+        this.title = title;
+        this.description = description;
+        this.completed = false;
+    }
+}
+
+// Manage todo list
+let todoList = [];
+
+// User interface
+let todoPanel; // Declare panel variable outside the function
+let apiPanel; // New panel for displaying API data
+
+function showTodoList(context) {
+    if (!todoPanel) {
+        // Create the webview panel only if it doesn't exist
+        todoPanel = vscode.window.createWebviewPanel(
+            'todoList',
+            'Todo List',
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
+                enableCommandUris: true,
+                enableFindWidget: true,
+                allowScripts: true,
+                sandbox: {
+                    allowScripts: true,
+                    allowForm: true
+                }
+            }
+        );
+    }
+
+    // Set webview content
+    todoPanel.webview.html = getTodoWebviewContent();
+}
+function addTodoItem(title, description) {
+    const todoItem = new TodoItem(title, description);
+    todoList.push(todoItem);
+    // Update the webview content after adding the todo item
+    showTodoList(vscode.extensions.getExtension('your.extension.id').exports);
+}
+function getTodoWebviewContent() {
+    const inputForm = `
+        <form id="todoForm">
+            <label for="title">Title:</label><br>
+            <input type="text" id="title" name="title"><br>
+            <label for="description">Description:</label><br>
+            <textarea id="description" name="description"></textarea><br><br>
+            <input type="submit" value="Add Todo Item">
+        </form>
+    `;
+
+    const todoItems = todoList.map(todo => `<li>${todo.title} - ${todo.description}</li>`).join('');
+
+    return `
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                form { margin: 20px; }
+                label { font-weight: bold; }
+                input[type="text"], textarea { width: 100%; margin-bottom: 10px; }
+                input[type="submit"] { background-color: #4CAF50; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; }
+            </style>
+        </head>
+        <body>
+            ${inputForm}
+            <h2>Todo List</h2>
+            <ul>
+                ${todoItems}
+            </ul>
+        </body>
+        </html>
+    `;
+}
