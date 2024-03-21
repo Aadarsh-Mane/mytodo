@@ -11,10 +11,16 @@ let transferNewsData; // Variable to store transfer news data
 let matchResultsData;
 // Function to fetch cricket match data
 // Function to fetch current cricket match data
-async function fetchCurrentCricketMatchData() {
+ // Declare panel variable for API data
+let currentCricketMatchesData; // Variable to store current cricket matches data
+let cricketMatchPanel; // Declare panel variable for current cricket matches data
+
+
+// Function to fetch current cricket matches data
+async function fetchCricketSeriesData() {
     const options = {
         method: 'GET',
-        url: 'https://api.cricapi.com/v1/currentMatches?apikey=2a2166f8-ac23-4098-90b3-45c315c3d2b3&offset=0'
+        url: 'https://api.cricapi.com/v1/series?apikey=2a2166f8-ac23-4098-90b3-45c315c3d2b3&offset=0'
     };
 
     try {
@@ -26,19 +32,18 @@ async function fetchCurrentCricketMatchData() {
     }
 }
 
-// Function to display current cricket match data in webview
-function displayCurrentCricketMatchData(animate = false) {
-    if (apiPanel && currentCricketMatchData) {
-        const currentMatchHTML = currentCricketMatchData.map(match => `
-            <div class="match-item">
-                <h3>${match.name}</h3>
-                <p><strong>Match Type:</strong> ${match.matchType}</p>
-                <p><strong>Status:</strong> ${match.status}</p>
-                <p><strong>Venue:</strong> ${match.venue}</p>
-                <p><strong>Date:</strong> ${match.date}</p>
-                <p><strong>Teams:</strong> ${match.teams.join(' vs ')}</p>
-                <img src="${match.teamInfo[0].img}" alt="${match.teamInfo[0].name}">
-                <img src="${match.teamInfo[1].img}" alt="${match.teamInfo[1].name}">
+// Function to display cricket series data in webview
+function displayCricketSeriesData(animate = false) {
+    if (apiPanel && cricketSeriesData) {
+        const cricketSeriesHTML = cricketSeriesData.data.map(series => `
+            <div class="series-item">
+                <h3>${series.name}</h3>
+                <p><strong>Start Date:</strong> ${series.startDate}</p>
+                <p><strong>End Date:</strong> ${series.endDate}</p>
+                <p><strong>ODI Matches:</strong> ${series.odi}</p>
+                <p><strong>T20 Matches:</strong> ${series.t20}</p>
+                <p><strong>Test Matches:</strong> ${series.test}</p>
+                <p><strong>Total Matches:</strong> ${series.matches}</p>
             </div>
         `).join('');
 
@@ -47,10 +52,10 @@ function displayCurrentCricketMatchData(animate = false) {
             <head>
                 <style>
                     body { font-family: Arial, sans-serif; }
-                    .match-item { margin-bottom: 20px; }
-                    .match-item h3 { margin-bottom: 5px; }
-                    .match-item p { margin: 5px 0; }
-                    ${animate ? '.match-item { animation: fadein 2s; }' : ''}
+                    .series-item { margin-bottom: 20px; }
+                    .series-item h3 { margin-bottom: 5px; }
+                    .series-item p { margin: 5px 0; }
+                    ${animate ? '.series-item { animation: fadein 2s; }' : ''}
                     @keyframes fadein {
                         from { opacity: 0; }
                         to   { opacity: 1; }
@@ -58,20 +63,20 @@ function displayCurrentCricketMatchData(animate = false) {
                 </style>
             </head>
             <body>
-                <h2>Current Cricket Match Data</h2>
-                ${currentMatchHTML}
+                <h2>Cricket Series Data</h2>
+                ${cricketSeriesHTML}
             </body>
             </html>
         `;
     }
 }
 
-// Function to show current cricket match data panel
-function showCurrentCricketMatchPanel(context) {
+// Function to show cricket series panel
+function showCricketSeriesPanel(context) {
     if (!apiPanel) {
         apiPanel = vscode.window.createWebviewPanel(
-            'currentCricketMatchData',
-            'Current Cricket Match Data',
+            'cricketSeriesData',
+            'Cricket Series Data',
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -92,20 +97,117 @@ function showCurrentCricketMatchPanel(context) {
     apiPanel.webview.html = getLoadingMessage(true);
 
     // Fetch data from API and display it with animation
-    fetchCurrentCricketMatchData().then(data => {
-        if (data && data.length > 0) {
+    fetchCricketSeriesData().then(data => {
+        if (data) {
             // If data is received, display it in the webview with animation
-            currentCricketMatchData = data;
-            displayCurrentCricketMatchData(true);
+            cricketSeriesData = data;
+            displayCricketSeriesData(true);
         } else {
-            // If no data is received or if the array is empty, display a message
-            apiPanel.webview.html = '<p>No current cricket match data available</p>';
+            // If no data is received, display a message
+            apiPanel.webview.html = '<p>No cricket series data available</p>';
         }
     }).catch(error => {
-        console.error('Error fetching current cricket match data:', error);
-        vscode.window.showErrorMessage('Error fetching current cricket match data');
+        console.error('Error fetching cricket series data:', error);
+        vscode.window.showErrorMessage('Error fetching cricket series data');
     });
 }
+
+async function fetchCurrentCricketMatches() {
+    const options = {
+        method: 'GET',
+        url: 'https://api.cricapi.com/v1/currentMatches?apikey=2a2166f8-ac23-4098-90b3-45c315c3d2b3&offset=0'
+    };
+
+    try {
+        const response = await axios.request(options);
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+// Function to display current cricket matches data in webview
+function displayCurrentCricketMatches(animate = false) {
+    if (cricketMatchPanel && currentCricketMatchesData) {
+        const cricketMatchesHTML = currentCricketMatchesData.data.map(match => `
+            <div class="match-item">
+                <h3>${match.name}</h3>
+                <p><strong>Match Type:</strong> ${match.matchType}</p>
+                <p><strong>Status:</strong> ${match.status}</p>
+                <p><strong>Venue:</strong> ${match.venue}</p>
+                <p><strong>Date:</strong> ${match.date}</p>
+            </div>
+        `).join('');
+
+        cricketMatchPanel.webview.html = `
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; }
+                    .match-item { margin-bottom: 20px; }
+                    .match-item h3 { margin-bottom: 5px; }
+                    .match-item p { margin: 5px 0; }
+                    ${animate ? '.match-item { animation: fadein 2s; }' : ''}
+                    @keyframes fadein {
+                        from { opacity: 0; }
+                        to   { opacity: 1; }
+                    }
+                </style>
+            </head>
+            <body>
+                <h2>Current Cricket Matches</h2>
+                ${cricketMatchesHTML}
+            </body>
+            </html>
+        `;
+    }
+}
+
+// Function to show current cricket matches panel
+function showCurrentCricketMatchesPanel(context) {
+    if (!cricketMatchPanel) {
+        cricketMatchPanel = vscode.window.createWebviewPanel(
+            'currentCricketMatches',
+            'Current Cricket Matches',
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
+                enableCommandUris: true,
+                enableFindWidget: true,
+                allowScripts: true,
+                sandbox: {
+                    allowScripts: true,
+                    allowForm: true
+                }
+            }
+        );
+    }
+
+    // Display loading message initially with animation
+    cricketMatchPanel.webview.html = getLoadingMessage(true);
+
+    // Fetch data from API and display it with animation
+    fetchCurrentCricketMatches().then(data => {
+        if (data) {
+            // If data is received, display it in the webview with animation
+            currentCricketMatchesData = data;
+            displayCurrentCricketMatches(true);
+        } else {
+            // If no data is received, display a message
+            cricketMatchPanel.webview.html = '<p>No current cricket matches available</p>';
+        }
+    }).catch(error => {
+        console.error('Error fetching current cricket matches data:', error);
+        vscode.window.showErrorMessage('Error fetching current cricket matches data');
+    });
+}
+
+
+// Function to show current cricket match data panel
+
 
 async function fetchCricketMatchData() {
     const options = {
@@ -129,6 +231,8 @@ function displayCricketMatchData(animate = false) {
             <div class="match-item">
                 <h3>${match.t1} vs ${match.t2}</h3>
                 <p><strong>Match Type:</strong> ${match.matchType}</p>
+                <p><strong>Score:</strong> ${match.t1s}</p>
+                <p><strong>Score:</strong> ${match.t2s}</p>
                 <p><strong>Status:</strong> ${match.status}</p>
                 <img src="${match.t1img}" alt="${match.t1}">
                 <img src="${match.t2img}" alt="${match.t2}">
@@ -435,8 +539,10 @@ function showAPIPanel(context) {
                 allowScripts: true,
                 sandbox: {
                     allowScripts: true,
-                    allowForm: true
-                }
+                    allowFor: true
+                },
+                iconPath: vscode.Uri.file(path.join(context.extensionPath, 'media', 'football.png')) // Provide the path to your icon file
+
             }
         );
     }
@@ -668,9 +774,13 @@ function activate(context) {
         // Open cricket match data panel
         showCricketMatchPanel(context);
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openCurrentCricketMatchPanel', () => {
-        // Open current cricket match data panel
-        showCurrentCricketMatchPanel(context);
+    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openCricketMatch', () => {
+        // Open current cricket matches panel
+        showCurrentCricketMatchesPanel(context);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openCricketSeriesPanel', () => {
+        // Open cricket series panel
+        showCricketSeriesPanel(context);
     }));
 }
 

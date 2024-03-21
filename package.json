@@ -46,7 +46,18 @@
       {
         "command": "mytodo.openCricketMatchPanel",
         "title": "Get live cricket "
+      },
+      {
+        "command": "mytodo.openCricketMatch",
+        "title": "Get current match "
+      },
+      {
+        "command": "mytodo.openCricketSeriesPanel",
+        "title": "Get upcoming series "
       }
+      
+
+    
     ]
   },
   "scripts": {
