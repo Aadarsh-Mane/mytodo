@@ -1,7 +1,7 @@
 {
-  "name": "mytodo",
-  "displayName": "  LiveSportsUpdate",
-  "publisher": "addy",
+  "name": "sports",
+  "displayName": "LiveSportsUpdate",
+  "publisher": "Addy",
   "description": "get the updates",
   "icon": "./media/addys.jpg",
   "version": "0.2.0",
