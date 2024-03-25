@@ -20,6 +20,10 @@ Welcome to the Live Sports Updates extension for Visual Studio Code! This extens
 5. Once installed, reload Visual Studio Code to activate the extension.
 
 ## Usage
+   
+
+https://github.com/Aadarsh-Mane/mytodo/assets/95363427/c53fd026-cfd9-4628-abac-39c4addca92f
+
 
 ![image](https://github.com/Aadarsh-Mane/mytodo/assets/95363427/96693cb9-b81b-4ad3-ac57-b02555f1da50)
 
