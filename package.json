@@ -3,9 +3,8 @@
   "displayName": "  LiveSportsUpdate",
   "publisher": "addy",
   "description": "",
-  "icon": "media/addys.jpg",
-
-  "version": "0.0.2",
+  "icon": "./media/addys.jpg",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/Aadarsh-Mane/mytodo"
