@@ -21,6 +21,8 @@ Welcome to the Live Sports Updates extension for Visual Studio Code! This extens
 
 ## Usage
 
+![image](https://github.com/Aadarsh-Mane/mytodo/assets/95363427/96693cb9-b81b-4ad3-ac57-b02555f1da50)
+
 - To access the features of this extension, use the following commands in Visual Studio Code:
   - **Get Transfer Updates:** Fetch the latest transfer news.
   - **Get Football News:** Retrieve news articles related to football.
