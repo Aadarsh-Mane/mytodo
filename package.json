@@ -5,6 +5,16 @@
   "description": "get the updates",
   "icon": "./media/addys.jpg",
   "version": "0.1.0",
+  "keywords": [
+    "sports",
+    "updates",
+    "fixtures",
+    "football",
+    "transfer",
+    "scoreboard",
+    "cricket",
+    "series"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Aadarsh-Mane/mytodo"
