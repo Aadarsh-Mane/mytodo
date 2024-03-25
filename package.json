@@ -1,10 +1,10 @@
 {
   "name": "sports",
-  "displayName": "LiveSportsUpdate",
+  "displayName": "  LiveSportsUpdate",
   "publisher": "Addy",
   "description": "get the updates",
   "icon": "./media/addys.jpg",
-  "version": "0.3.0",
+  "version": "0.1.0",
   "keywords": [
     "sports",
     "updates",
