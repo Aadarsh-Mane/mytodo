@@ -11,7 +11,6 @@ let apiPanel; // Declare panel variable for API data
 let newsPanel; // Declare panel variable for news data
 let transferNewsData; // Variable to store transfer news data
 
-// Function to show transfer news panel
 // Define matchResultsData variable
 let matchResultsData;
 
