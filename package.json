@@ -1,6 +1,7 @@
 {
   "name": "mytodo",
-  "displayName": "mytodo",
+  "displayName": "  LiveSportsUpdate",
+  "publisher": "addy",
   "description": "",
   "version": "0.0.1",
   "engines": {
@@ -10,7 +11,9 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:mytodo-sidebar"
+    "onView:mytodo-sidebar",
+    "onCommand:extension.showPersistentPanel",
+    "onStartupFinished"
   ],
   "main": "./extension.js",
   "contributes": {
@@ -19,18 +22,12 @@
         "command": "mytodo.helloWorld",
         "title": "Hello World"
       },
-      {
-        "command": "mytodo.openSidebar",
-        "title": "Open MyToDo Sidebar"
-      },
+      
       {
         "command": "mytodo.openAPIPanel",
         "title": "Get today fixtures"
       },
-      {
-        "command": "mytodo.addTodoItem",
-        "title": "Add Todo Item"
-      },
+     
       {
         "command": "mytodo.openNewsPanel",
         "title": "Get football news"

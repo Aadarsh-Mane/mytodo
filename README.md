@@ -1,65 +1,42 @@
-# mytodo README
+# Live Sports Updates Extension for Visual Studio Code
 
-This is the README for your extension "mytodo". After writing up a brief description, we recommend including the following sections.
+Welcome to the Live Sports Updates extension for Visual Studio Code! This extension provides live updates on various sports including football and cricket. Users can access live scores, transfer news, football news, and much more right from within their code editor.
 
 ## Features
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+- **Live Scores:** Get real-time updates on ongoing matches in football and cricket.
+- **Transfer Updates:** Stay informed about the latest transfer news in the world of sports.
+- **Football News:** Access the latest news articles and updates related to football.
+- **Cricket News:** Stay up-to-date with news articles and updates from the cricket world.
+- **Current Match Information:** Get detailed information about the ongoing cricket matches.
+- **Upcoming Series:** View details about upcoming cricket series.
 
-For example if there is an image subfolder under your extension project workspace:
+## Installation
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Launch Visual Studio Code.
+2. Go to the Extensions view by clicking on the square icon in the Sidebar.
+3. Search for "Live Sports Updates" in the Extensions Marketplace.
+4. Click on the Install button to install the extension.
+5. Once installed, reload Visual Studio Code to activate the extension.
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+## Usage
 
-## Requirements
+- To access the features of this extension, use the following commands in Visual Studio Code:
+  - **Get Transfer Updates:** Fetch the latest transfer news.
+  - **Get Football News:** Retrieve news articles related to football.
+  - **Get Live Cricket:** View live scores and updates for ongoing cricket matches.
+  - **Get Current Match:** Get detailed information about the current cricket match.
+  - **Get Upcoming Series:** Display details about upcoming cricket series.
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+To execute commands:
+- Open the Command Palette by pressing `Ctrl+Shift+P` (Windows/Linux) or `Cmd+Shift+P` (macOS).
+- Type the command name and select it from the list.
 
-## Extension Settings
+## Contributing
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+Contributions are welcome! If you encounter any issues or have suggestions for improvements, feel free to open an issue or submit a pull request on [GitHub](https://github.com/your/repository).
 
-For example:
+## License
 
-This extension contributes the following settings:
+This extension is licensed under the [MIT License](LICENSE).
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
----
-
-## Working with Markdown
-
-You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**

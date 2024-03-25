@@ -1,3 +1,8 @@
+const { showCricketMatchPanel } =require( './controllers/getCricketMatch');
+
+const { showCricketSeriesPanel, } = require('./controllers/getCricketSeries');
+const { showCurrentCricketMatchesPanel, } = require('./controllers/getCurrentMatch');
+const {getLoadingMessage}=require('./global/loadingMessage')
 const vscode = require('vscode');
 const path = require('path');
 const axios = require('axios');
@@ -9,77 +14,18 @@ let transferNewsData; // Variable to store transfer news data
 // Function to show transfer news panel
 // Define matchResultsData variable
 let matchResultsData;
-// Function to fetch cricket match data
-// Function to fetch current cricket match data
- // Declare panel variable for API data
-let currentCricketMatchesData; // Variable to store current cricket matches data
-let cricketMatchPanel; // Declare panel variable for current cricket matches data
 
 
-// Function to fetch current cricket matches data
-async function fetchCricketSeriesData() {
-    const options = {
-        method: 'GET',
-        url: 'https://api.cricapi.com/v1/series?apikey=2a2166f8-ac23-4098-90b3-45c315c3d2b3&offset=0'
-    };
+let persistentPanel; // Declare panel variable for persistent panel
 
-    try {
-        const response = await axios.request(options);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
-
-// Function to display cricket series data in webview
-function displayCricketSeriesData(animate = false) {
-    if (apiPanel && cricketSeriesData) {
-        const cricketSeriesHTML = cricketSeriesData.data.map(series => `
-            <div class="series-item">
-                <h3>${series.name}</h3>
-                <p><strong>Start Date:</strong> ${series.startDate}</p>
-                <p><strong>End Date:</strong> ${series.endDate}</p>
-                <p><strong>ODI Matches:</strong> ${series.odi}</p>
-                <p><strong>T20 Matches:</strong> ${series.t20}</p>
-                <p><strong>Test Matches:</strong> ${series.test}</p>
-                <p><strong>Total Matches:</strong> ${series.matches}</p>
-            </div>
-        `).join('');
-
-        apiPanel.webview.html = `
-            <html>
-            <head>
-                <style>
-                    body { font-family: Arial, sans-serif; }
-                    .series-item { margin-bottom: 20px; }
-                    .series-item h3 { margin-bottom: 5px; }
-                    .series-item p { margin: 5px 0; }
-                    ${animate ? '.series-item { animation: fadein 2s; }' : ''}
-                    @keyframes fadein {
-                        from { opacity: 0; }
-                        to   { opacity: 1; }
-                    }
-                </style>
-            </head>
-            <body>
-                <h2>Cricket Series Data</h2>
-                ${cricketSeriesHTML}
-            </body>
-            </html>
-        `;
-    }
-}
-
-// Function to show cricket series panel
-function showCricketSeriesPanel(context) {
-    if (!apiPanel) {
-        apiPanel = vscode.window.createWebviewPanel(
-            'cricketSeriesData',
-            'Cricket Series Data',
-            vscode.ViewColumn.One,
+// Function to create a persistent panel that never gets closed
+function createPersistentPanel(context) {
+    if (!persistentPanel) {
+        persistentPanel = vscode.window.createWebviewPanel(
+            'persistentPanel',
+            'Football and Cricket Updates',
+            vscode.ViewColumn.One, // You can adjust the view column as needed
             {
-                enableScripts: true,
                 retainContextWhenHidden: true,
                 localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
                 enableCommandUris: true,
@@ -91,221 +37,114 @@ function showCricketSeriesPanel(context) {
                 }
             }
         );
-    }
 
-    // Display loading message initially with animation
-    apiPanel.webview.html = getLoadingMessage(true);
-
-    // Fetch data from API and display it with animation
-    fetchCricketSeriesData().then(data => {
-        if (data) {
-            // If data is received, display it in the webview with animation
-            cricketSeriesData = data;
-            displayCricketSeriesData(true);
-        } else {
-            // If no data is received, display a message
-            apiPanel.webview.html = '<p>No cricket series data available</p>';
-        }
-    }).catch(error => {
-        console.error('Error fetching cricket series data:', error);
-        vscode.window.showErrorMessage('Error fetching cricket series data');
-    });
-}
-
-async function fetchCurrentCricketMatches() {
-    const options = {
-        method: 'GET',
-        url: 'https://api.cricapi.com/v1/currentMatches?apikey=2a2166f8-ac23-4098-90b3-45c315c3d2b3&offset=0'
-    };
-
-    try {
-        const response = await axios.request(options);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
-
-// Function to display current cricket matches data in webview
-function displayCurrentCricketMatches(animate = false) {
-    if (cricketMatchPanel && currentCricketMatchesData) {
-        const cricketMatchesHTML = currentCricketMatchesData.data.map(match => `
-            <div class="match-item">
-                <h3>${match.name}</h3>
-                <p><strong>Match Type:</strong> ${match.matchType}</p>
-                <p><strong>Status:</strong> ${match.status}</p>
-                <p><strong>Venue:</strong> ${match.venue}</p>
-                <p><strong>Date:</strong> ${match.date}</p>
-            </div>
-        `).join('');
-
-        cricketMatchPanel.webview.html = `
+        // Set the HTML content for the persistent panel
+        persistentPanel.webview.html = `
             <html>
             <head>
                 <style>
-                    body { font-family: Arial, sans-serif; }
-                    .match-item { margin-bottom: 20px; }
-                    .match-item h3 { margin-bottom: 5px; }
-                    .match-item p { margin: 5px 0; }
-                    ${animate ? '.match-item { animation: fadein 2s; }' : ''}
-                    @keyframes fadein {
-                        from { opacity: 0; }
-                        to   { opacity: 1; }
+                body {
+                    font-family: Arial, sans-serif;
+                    background-color: #f5f5f5;
+                    background: url('https://a1.espncdn.com/combiner/i?img=%2Fphoto%2F2023%2F0325%2Fr1149798_1296x729_16%2D9.jpg') no-repeat center center fixed;
+                    background-size: cover;
+                    margin: 0;
+                    padding: 20px;
+                    color: #fff; /* Set text color to white */
+                }
+                h2 {
+                    color: #fff; /* Set heading color to white */
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                    text-align: center; /* Center align the heading */
+                }
+                .container {
+                    display: flex;
+                    flex-direction: column;
+                    align-items: center;
+                }
+                .panel-item {
+                    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background for the panel item */
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    padding: 20px;
+                    margin-bottom: 20px;
+                    width: 300px; /* Adjust width as needed */
+                    max-width: 80%; /* Set max width to 80% of the container */
+                    text-align: center; /* Center align the panel item content */
+                }
+                .panel-item p {
+                    margin: 10px 0; /* Add some margin to the paragraphs */
+                    color: #fff; /* Set paragraph text color to white */
+                    font-size: 16px; /* Set paragraph font size */
+                    line-height: 1.6; /* Set line height for better readability */
+                    text-align: center; /* Align the text to the left */
+
+                }
+                .panel-item p:nth-child(even) {
+                    color: #00bcd4; /* Dark text color for odd-numbered paragraphs */
+                }
+        
+                .panel-item p:nth-child(even) {
+                    color: #FF0000; /* Lighter text color for even-numbered paragraphs */
+                }
+                .panel-item a {
+                    color: #007acc;
+                    text-decoration: none;
+                }
+                .panel-item a:hover {
+                    text-decoration: underline;
+                }
+                .scrolling-text {
+                    position: absolute; /* Position the scrolling text absolutely */
+                    left: 100%; /* Start off the screen */
+                    white-space: nowrap; /* Prevent text from wrapping */
+                    animation: scrollRight 10s linear infinite; /* Apply animation */
+                }
+                @keyframes scrollRight {
+                    from {
+                        left: 100%; /* Start off the screen */
                     }
+                    to {
+                        left: -100%; /* Move all the way to the left */
+                    }
+                
                 </style>
             </head>
             <body>
-                <h2>Current Cricket Matches</h2>
-                ${cricketMatchesHTML}
+                <div class="container">
+                    <div class="panel-item">
+                    <p class="scrolling-text">Please Note: In order to keep the extension active, do not close this window; otherwise, a reload will be required.</p>
+
+                        <h2>Use Ctrl+Shift+P</h2>
+                        <p>Command: Get transfer updates</p>
+                        <p>Command: Get football news</p>
+                        <p>Command:Get transfer updates </p>
+                        <p>Command: Get live cricket</p>
+                        <p>Command:Get current match </p>
+                        <p>Command:Get upcoming series</p>
+                        
+                    </div>
+                    <div class="panel-item">
+                        <h2>Football Updates</h2>
+                        <p>Click <a href="command:mytodo.openTransferNewsPanel">here</a> for transfer updates.</p>
+                        <p>Click <a href="command:mytodo.openAPIPanel">here</a> for fixtures.</p>
+                        <p>Click <a href="command:mytodo.openNewsPanel">here</a> for news.</p>
+                    </div>
+                    <div class="panel-item">
+                        <h2>Cricket Updates</h2>
+                        <p>Click <a href="command:mytodo.openCricketMatch">here</a> for current matches.</p>
+                        <p>Click <a href="command:mytodo.openCricketMatchPanel">here</a> for live scores.</p>
+                        <p>Click <a href="command:mytodo.openCricketSeriesPanel">here</a> for upcoming series.</p>
+                    </div>
+                </div>
             </body>
             </html>
         `;
     }
 }
 
-// Function to show current cricket matches panel
-function showCurrentCricketMatchesPanel(context) {
-    if (!cricketMatchPanel) {
-        cricketMatchPanel = vscode.window.createWebviewPanel(
-            'currentCricketMatches',
-            'Current Cricket Matches',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
-                enableCommandUris: true,
-                enableFindWidget: true,
-                allowScripts: true,
-                sandbox: {
-                    allowScripts: true,
-                    allowForm: true
-                }
-            }
-        );
-    }
 
-    // Display loading message initially with animation
-    cricketMatchPanel.webview.html = getLoadingMessage(true);
-
-    // Fetch data from API and display it with animation
-    fetchCurrentCricketMatches().then(data => {
-        if (data) {
-            // If data is received, display it in the webview with animation
-            currentCricketMatchesData = data;
-            displayCurrentCricketMatches(true);
-        } else {
-            // If no data is received, display a message
-            cricketMatchPanel.webview.html = '<p>No current cricket matches available</p>';
-        }
-    }).catch(error => {
-        console.error('Error fetching current cricket matches data:', error);
-        vscode.window.showErrorMessage('Error fetching current cricket matches data');
-    });
-}
-
-
-// Function to show current cricket match data panel
-
-
-async function fetchCricketMatchData() {
-    const options = {
-        method: 'GET',
-        url: 'https://api.cricapi.com/v1/cricScore?apikey=2a2166f8-ac23-4098-90b3-45c315c3d2b3'
-    };
-
-    try {
-        const response = await axios.request(options);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-}
-
-// Function to display cricket match data in webview
-function displayCricketMatchData(animate = false) {
-    if (apiPanel && cricketMatchData) {
-        const cricketMatchHTML = cricketMatchData.data.map(match => `
-            <div class="match-item">
-                <h3>${match.t1} vs ${match.t2}</h3>
-                <p><strong>Match Type:</strong> ${match.matchType}</p>
-                <p><strong>Score:</strong> ${match.t1s}</p>
-                <p><strong>Score:</strong> ${match.t2s}</p>
-                <p><strong>Status:</strong> ${match.status}</p>
-                <img src="${match.t1img}" alt="${match.t1}">
-                <img src="${match.t2img}" alt="${match.t2}">
-            </div>
-        `).join('');
-
-        apiPanel.webview.html = `
-            <html>
-            <head>
-                <style>
-                    body { font-family: Arial, sans-serif; }
-                    .match-item { margin-bottom: 20px; }
-                    .match-item h3 { margin-bottom: 5px; }
-                    .match-item p { margin: 5px 0; }
-                    ${animate ? '.match-item { animation: fadein 2s; }' : ''}
-                    @keyframes fadein {
-                        from { opacity: 0; }
-                        to   { opacity: 1; }
-                    }
-                </style>
-            </head>
-            <body>
-                <h2>Cricket Match Data</h2>
-                ${cricketMatchHTML}
-            </body>
-            </html>
-        `;
-    }
-}
-
-// Function to show cricket match data panel
-function showCricketMatchPanel(context) {
-    if (!apiPanel) {
-        apiPanel = vscode.window.createWebviewPanel(
-            'cricketMatchData',
-            'Cricket Match Data',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
-                enableCommandUris: true,
-                enableFindWidget: true,
-                allowScripts: true,
-                sandbox: {
-                    allowScripts: true,
-                    allowForm: true
-                }
-            }
-        );
-    }
-
-    // Display loading message initially with animation
-    apiPanel.webview.html = getLoadingMessage(true);
-
-    // Fetch data from API and display it with animation
-    fetchCricketMatchData().then(data => {
-        if (data) {
-            // If data is received, display it in the webview with animation
-            cricketMatchData = data;
-            displayCricketMatchData(true);
-        } else {
-            // If no data is received, display a message
-            apiPanel.webview.html = '<p>No cricket match data available</p>';
-        }
-    }).catch(error => {
-        console.error('Error fetching cricket match data:', error);
-        vscode.window.showErrorMessage('Error fetching cricket match data');
-    });
-}
-
-// Function to fetch match results data
-// Update the fetchMatchResultsData function to fetch data from the new URL
 async function fetchMatchResultsData() {
     const options = {
         method: 'GET',
@@ -337,7 +176,9 @@ function displayMatchResults(animate = false) {
             <html>
             <head>
                 <style>
-                    body { font-family: Arial, sans-serif; }
+                    body { font-family: Arial, sans-serif;
+
+                    }
                     .match-item { margin-bottom: 20px; }
                     .match-item h3 { margin-bottom: 5px; }
                     .match-item p { margin: 5px 0; }
@@ -377,6 +218,9 @@ function showMatchResultsPanel(context) {
                 }
             }
         );
+        apiPanel.onDidDispose(() => {
+            apiPanel = null;
+        }, null, context.subscriptions);
     }
 
     // Display loading message initially with animation
@@ -440,29 +284,7 @@ function showTransferNewsPanel(context) {
 
 // Function to display loading message
 // Function to display loading message with football icon animation
-function getLoadingMessage(animate = false) {
-    const animationClass = animate ? 'loading-animation' : '';
-    return `
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; }
-                .loading { text-align: center; margin-top: 50px; font-size: 20px; }
-                .${animationClass} { animation: rotate 2s linear infinite; }
-                @keyframes rotate {
-                    from { transform: rotate(0deg); }
-                    to { transform: rotate(360deg); }
-                }
-            </style>
-        </head>
-        <body>
-            <div class="loading ${animationClass}">
-                <img src="https://i.ibb.co/hc2gHsJ/Pi7-Tool-football-removebg-preview.png" alt="Football Icon" width="100px" height="100px">
-            </div>
-        </body>
-        </html>
-    `;
-}
+
 
 
 // Function to fetch transfer news data
@@ -615,8 +437,8 @@ function getAPIWebviewContent(data, animate = false) {
             </style>
         </head>
         <body>
-            <h2>API Data</h2>
-            <h3>Fixtures</h3>
+            <h2>Today's Fixtures</h2>
+            <h3>Fixture</h3>
             ${fixturesHTML}
         </body>
         </html>
@@ -727,17 +549,14 @@ function getNewsWebviewContent(newsData, animate = false) {
 // Activate function
 function activate(context) {
     console.log('Congratulations, your extension "mytodo" is now active!');
+    createPersistentPanel(context);
 
     // Register commands and their handlers
     let disposable = vscode.commands.registerCommand('mytodo.helloWorld', function () {
         vscode.window.showInformationMessage('Hello World from mytodo!');
     });
 
-    
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openTodoList', () => {
-        // Open todo list
-        showTodoList(context);
-    }));
+ 
     
     context.subscriptions.push(vscode.commands.registerCommand('mytodo.openAPIPanel', () => {
         // Open API data panel
@@ -749,18 +568,7 @@ function activate(context) {
         showNewsPanel(context);
     }));
     
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.addTodoItem', () => {
-        // Prompt user to add a new todo item
-        vscode.window.showInputBox({ prompt: 'Enter todo item title' }).then(title => {
-            if (title) {
-                vscode.window.showInputBox({ prompt: 'Enter todo item description' }).then(description => {
-                    if (description) {
-                        addTodoItem(title, description);
-                    }
-                });
-            }
-        });
-    }));
+  
     
     context.subscriptions.push(vscode.commands.registerCommand('mytodo.openTransferNewsPanel', () => {
         // Open transfer news data panel
