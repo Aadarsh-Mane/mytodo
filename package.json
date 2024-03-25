@@ -4,6 +4,10 @@
   "publisher": "addy",
   "description": "",
   "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aadarsh-Mane/mytodo"
+  },
   "engines": {
     "vscode": "^1.87.0"
   },
