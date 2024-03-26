@@ -145,7 +145,7 @@ function showCricketMatchPanel(context) {
     refreshData();
 
     // Refresh data every 5 minutes
-    const refreshInterval = setInterval(refreshData, 20000); // 5 minutes in milliseconds
+    const refreshInterval = setInterval(refreshData, 3 * 60 * 1000); // 5 minutes in milliseconds
 }
 
 module.exports = {
