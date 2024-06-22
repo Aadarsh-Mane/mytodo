@@ -1,3 +1,4 @@
+
 const { showCricketMatchPanel } =require( './controllers/getCricketMatch');
 
 const { showCricketSeriesPanel, } = require('./controllers/getCricketSeries');
@@ -113,23 +114,26 @@ function createPersistentPanel(context) {
             <body>
                 <div class="container">
                     <div class="panel-item">
-                    <p class="scrolling-text">Please Note: In order to keep the extension active, do not close this window; otherwise, a reload will be required.</p>
-
-                        <h2>Use Ctrl+Shift+P</h2>
-                        <p>Command: Get transfer updates</p>
-                        <p>Command: Get football news</p>
-                        <p>Command:Get transfer updates </p>
-                        <p>Command: Get live cricket</p>
-                        <p>Command:Get current match </p>
-                        <p>Command:Get upcoming series</p>
+                <p class="scrolling-text">Please : In order to keep the extension active, do not close this window; otherwise, a reload will be required.</p>
+                
+                <h2>Use Ctrl+ and Shift+P</h2>
+                <p>Command: Get transfer updates</p>
+                <p>Command: Get football news</p>
+                <p>Command:Get transfer updates </p>
+                <p>Command: Get live cricket</p>
+                <p>Command:Get current match </p>
+                <p>Command:Get upcoming series</p>
+                <h3>Don't forget to give a review Click <a href="https://marketplace.visualstudio.com/items?itemName=addy.mytodo&ssr=false#review-details">here</a> ⭐.</h2>
                         
                     </div>
                     <div class="panel-item">
                         <h2>Football Updates</h2>
                         <p>Click <a href="command:mytodo.openTransferNewsPanel">here</a> for transfer updates.</p>
+                        <p>Click <a href="command:mytodo.openLiveScore">here</a> for live score.</p>
                         <p>Click <a href="command:mytodo.openAPIPanel">here</a> for fixtures.</p>
                         <p>Click <a href="command:mytodo.openNewsPanel">here</a> for news.</p>
-                    </div>
+                        <h3>Don't forget to give a review Click <a href="https://marketplace.visualstudio.com/items?itemName=addy.mytodo&ssr=false#review-details">here</a> ⭐.</h2>
+                        </div>
                     <div class="panel-item">
                         <h2>Cricket Updates</h2>
                         <p>Click <a href="command:mytodo.openCricketMatch">here</a> for current matches.</p>
@@ -349,7 +353,7 @@ function showAPIPanel(context) {
     if (!apiPanel) {
         apiPanel = vscode.window.createWebviewPanel(
             'apiData',
-            'API Data',
+            `Today's Fixtures`,
             vscode.ViewColumn.One,
             {
                 enableScripts: true,
@@ -415,8 +419,9 @@ function getAPIWebviewContent(data, animate = false) {
         <div class="fixture">
             <p><strong>Team A:</strong> ${fixture.teamA}</p>
             <p><strong>Team B:</strong> ${fixture.teamB}</p>
-            <p><strong>Time:</strong> ${fixture.time}</p>
-            <p><strong>Source:</strong> ${fixture.source}</p>
+            <p><strong>Time:</strong> ${fixture.timing}</p>
+            <p><strong>MatchOver:</strong> ${fixture.scoreA}</p>
+            <p><strong>Day:</strong> ${fixture.scoreB}</p>
         </div>
     `).join('');
 
@@ -439,6 +444,103 @@ function getAPIWebviewContent(data, animate = false) {
             <h2>Today's Fixtures</h2>
             <h3>Fixture</h3>
             ${fixturesHTML}
+        </body>
+        </html>
+    `;
+}
+function showLiveScore(context) {
+    if (!apiPanel) {
+        apiPanel = vscode.window.createWebviewPanel(
+            'apiData',
+            `Live Score`,
+            vscode.ViewColumn.One,
+            {
+                enableScripts: true,
+                retainContextWhenHidden: true,
+                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
+                enableCommandUris: true,
+                enableFindWidget: true,
+                allowScripts: true,
+                sandbox: {
+                    allowScripts: true,
+                    allowFor: true
+                },
+                iconPath: vscode.Uri.file(path.join(context.extensionPath, 'media', 'football.png')) // Provide the path to your icon file
+
+            }
+        );
+    }
+
+    // Display loading message initially with animation
+    apiPanel.webview.html = getLoadingMessage(true);
+
+    // Fetch data from API and display it with animation
+    fetchDataForLiveScore().then(data => {
+        if (data) {
+            // If data is received, display it in the webview with animation
+            apiPanel.webview.html = getAPIWebviewContent1(data, true);
+        } else {
+            // If no data is received, display a message
+            apiPanel.webview.html = '<p>No data available</p>';
+        }
+    }).catch(error => {
+        console.error('Error fetching data from API:', error);
+        vscode.window.showErrorMessage('Error fetching data from API');
+    });
+}
+
+async function fetchDataForLiveScore() {
+    const options = {
+        method: 'GET',
+        url: 'https://football_api12.p.rapidapi.com/players/livescore',
+        headers: {
+            'X-RapidAPI-Key': '82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0',
+            'X-RapidAPI-Host': 'football_api12.p.rapidapi.com'
+        }
+    };
+    
+    try {
+        const response = await axios.request(options);
+        console.log(response.data)
+        return response.data;
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+function getAPIWebviewContent1(data, animate = false) {
+    if (!data || data.length === 0) {
+        return '<p>No data available</p>';
+    }
+    const liveScoreHTML = data.map(fixture => `
+        <div class="fixture">
+            <p><strong>Team A:</strong> ${fixture.teamA}</p>
+            <p><strong>Team B:</strong> ${fixture.teamB}</p>
+            <p><strong>Score for Team A:</strong> ${fixture.scoreA}</p>
+            <p><strong>Score for Team A:</strong> ${fixture.scoreB}</p>
+            <p><strong>Time in GMT:</strong> ${fixture.timing}</p>
+        </div>
+    `).join('');
+
+    return `
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                .fixture { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+                .fixture p { margin: 5px 0; }
+                .fixture strong { font-weight: bold; }
+                ${animate ? '.fixture { animation: fadein 2s; }' : ''}
+                @keyframes fadein {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
+            </style>
+        </head>
+        <body>
+            <h2>lIVE sCORE</h2>
+            <h3>Fixture</h3>
+            ${liveScoreHTML}
         </body>
         </html>
     `;
@@ -560,6 +662,10 @@ function activate(context) {
     context.subscriptions.push(vscode.commands.registerCommand('mytodo.openAPIPanel', () => {
         // Open API data panel
         showAPIPanel(context);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openLiveScore', () => {
+        // Open API data panel
+        showLiveScore(context);
     }));
     
     context.subscriptions.push(vscode.commands.registerCommand('mytodo.openNewsPanel', () => {
