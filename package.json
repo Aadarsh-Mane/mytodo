@@ -4,7 +4,7 @@
   "publisher": "Addy",
   "description": "A VS Code extension delivering real-time updates on football transfers, live scores, and other sports-related information for sports enthusiasts.",
   "icon": "./media/addys.jpg",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "keywords": [
     "sports",
     "updates",
