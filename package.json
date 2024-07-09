@@ -35,11 +35,15 @@
     "commands": [
       {
         "command": "mytodo.helloWorld",
-        "title": "Hello Wod"
+        "title": "Hello World"
       },
       {
         "command": "mytodo.openAPIPanel",
         "title": "Get today fixtures"
+      },
+      {
+        "command": "mytodo.openAllFixtures",
+        "title": "Get all fixtures"
       },
       {
         "command": "mytodo.openLiveScore",

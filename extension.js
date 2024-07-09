@@ -1,12 +1,13 @@
+const { showCricketMatchPanel } = require("./controllers/getCricketMatch");
 
-const { showCricketMatchPanel } =require( './controllers/getCricketMatch');
-
-const { showCricketSeriesPanel, } = require('./controllers/getCricketSeries');
-const { showCurrentCricketMatchesPanel, } = require('./controllers/getCurrentMatch');
-const {getLoadingMessage}=require('./global/loadingMessage')
-const vscode = require('vscode');
-const path = require('path');
-const axios = require('axios');
+const { showCricketSeriesPanel } = require("./controllers/getCricketSeries");
+const {
+  showCurrentCricketMatchesPanel,
+} = require("./controllers/getCurrentMatch");
+const { getLoadingMessage } = require("./global/loadingMessage");
+const vscode = require("vscode");
+const path = require("path");
+const axios = require("axios");
 
 let apiPanel; // Declare panel variable for API data
 let newsPanel; // Declare panel variable for news data
@@ -15,31 +16,32 @@ let transferNewsData; // Variable to store transfer news data
 // Define matchResultsData variable
 let matchResultsData;
 
-
 let persistentPanel; // Declare panel variable for persistent panel
 
 // Function to create a persistent panel that never gets closed
 function createPersistentPanel(context) {
-    if (!persistentPanel) {
-        persistentPanel = vscode.window.createWebviewPanel(
-            'persistentPanel',
-            'Football and Cricket Updates',
-            vscode.ViewColumn.One, // You can adjust the view column as needed
-            {
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
-                enableCommandUris: true,
-                enableFindWidget: true,
-                allowScripts: true,
-                sandbox: {
-                    allowScripts: true,
-                    allowForm: true
-                }
-            }
-        );
+  if (!persistentPanel) {
+    persistentPanel = vscode.window.createWebviewPanel(
+      "persistentPanel",
+      "Football and Cricket Updates",
+      vscode.ViewColumn.One, // You can adjust the view column as needed
+      {
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, "media")),
+        ],
+        enableCommandUris: true,
+        enableFindWidget: true,
+        allowScripts: true,
+        sandbox: {
+          allowScripts: true,
+          allowForm: true,
+        },
+      }
+    );
 
-        // Set the HTML content for the persistent panel
-        persistentPanel.webview.html = `
+    // Set the HTML content for the persistent panel
+    persistentPanel.webview.html = `
             <html>
             <head>
                 <style>
@@ -130,7 +132,8 @@ function createPersistentPanel(context) {
                         <h2>Football Updates</h2>
                         <p>Click <a href="command:mytodo.openTransferNewsPanel">here</a> for transfer updates.</p>
                         <p>Click <a href="command:mytodo.openLiveScore">here</a> for live score.</p>
-                        <p>Click <a href="command:mytodo.openAPIPanel">here</a> for fixtures.</p>
+                        <p>Click <a href="command:mytodo.openAPIPanel">here</a> to get today's fixtures.</p>
+                        <p>Click <a href="command:mytodo.openAllFixtures">here</a> to get all fixtures.</p>
                         <p>Click <a href="command:mytodo.openNewsPanel">here</a> for news.</p>
                         <h3>Don't forget to give a review Click <a href="https://marketplace.visualstudio.com/items?itemName=addy.mytodo&ssr=false#review-details">here</a> ⭐.</h2>
                         </div>
@@ -144,38 +147,40 @@ function createPersistentPanel(context) {
             </body>
             </html>
         `;
-    }
+  }
 }
-
 
 async function fetchMatchResultsData() {
-    const options = {
-        method: 'GET',
-        url: 'https://football-api-20s.onrender.com/players/results'
-    };
+  const options = {
+    method: "GET",
+    url: "https://football-api-20s.onrender.com/players/results",
+  };
 
-    try {
-        const response = await axios.request(options);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+  try {
+    const response = await axios.request(options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
-
 
 // Function to display match results in webview
 function displayMatchResults(animate = false) {
-    if (apiPanel && matchResultsData) {
-        const matchResultsHTML = matchResultsData.map(match => `
+  if (apiPanel && matchResultsData) {
+    const matchResultsHTML = matchResultsData
+      .map(
+        (match) => `
             <div class="match-item">
                 <h3>${match.team1} vs ${match.team2}</h3>
                 <p><strong>Result:</strong> ${match.result}</p>
                 <p><strong>Date:</strong> ${match.date}</p>
             </div>
-        `).join('');
+        `
+      )
+      .join("");
 
-        apiPanel.webview.html = `
+    apiPanel.webview.html = `
             <html>
             <head>
                 <style>
@@ -185,7 +190,7 @@ function displayMatchResults(animate = false) {
                     .match-item { margin-bottom: 20px; }
                     .match-item h3 { margin-bottom: 5px; }
                     .match-item p { margin: 5px 0; }
-                    ${animate ? '.match-item { animation: fadein 2s; }' : ''}
+                    ${animate ? ".match-item { animation: fadein 2s; }" : ""}
                     @keyframes fadein {
                         from { opacity: 0; }
                         to   { opacity: 1; }
@@ -198,131 +203,144 @@ function displayMatchResults(animate = false) {
             </body>
             </html>
         `;
-    }
+  }
 }
 
 // Function to show match results panel
 function showMatchResultsPanel(context) {
-    if (!apiPanel) {
-        apiPanel = vscode.window.createWebviewPanel(
-            'matchResults',
-            'Match Results',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
-                enableCommandUris: true,
-                enableFindWidget: true,
-                allowScripts: true,
-                sandbox: {
-                    allowScripts: true,
-                    allowForm: true
-                }
-            }
-        );
-        apiPanel.onDidDispose(() => {
-            apiPanel = null;
-        }, null, context.subscriptions);
-    }
+  if (!apiPanel) {
+    apiPanel = vscode.window.createWebviewPanel(
+      "matchResults",
+      "Match Results",
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, "media")),
+        ],
+        enableCommandUris: true,
+        enableFindWidget: true,
+        allowScripts: true,
+        sandbox: {
+          allowScripts: true,
+          allowForm: true,
+        },
+      }
+    );
+    apiPanel.onDidDispose(
+      () => {
+        apiPanel = null;
+      },
+      null,
+      context.subscriptions
+    );
+  }
 
-    // Display loading message initially with animation
-    apiPanel.webview.html = getLoadingMessage(true);
+  // Display loading message initially with animation
+  apiPanel.webview.html = getLoadingMessage(true);
 
-    // Fetch data from API and display it with animation
-    fetchMatchResultsData().then(data => {
-        if (data) {
-            // If data is received, display it in the webview with animation
-            matchResultsData = data;
-            displayMatchResults(true);
-        } else {
-            // If no data is received, display a message
-            apiPanel.webview.html = '<p>No match results available</p>';
-        }
-    }).catch(error => {
-        console.error('Error fetching match results data:', error);
-        vscode.window.showErrorMessage('Error fetching match results data');
+  // Fetch data from API and display it with animation
+  fetchMatchResultsData()
+    .then((data) => {
+      if (data) {
+        // If data is received, display it in the webview with animation
+        matchResultsData = data;
+        displayMatchResults(true);
+      } else {
+        // If no data is received, display a message
+        apiPanel.webview.html = "<p>No match results available</p>";
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching match results data:", error);
+      vscode.window.showErrorMessage("Error fetching match results data");
     });
 }
 
-
 function showTransferNewsPanel(context) {
-    if (!newsPanel) {
-        newsPanel = vscode.window.createWebviewPanel(
-            'transferNewsData',
-            'Transfer News Data',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
-                enableCommandUris: true,
-                enableFindWidget: true,
-                allowScripts: true,
-                sandbox: {
-                    allowScripts: true,
-                    allowForm: true
-                }
-            }
-        );
-    }
+  if (!newsPanel) {
+    newsPanel = vscode.window.createWebviewPanel(
+      "transferNewsData",
+      "Transfer News Data",
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, "media")),
+        ],
+        enableCommandUris: true,
+        enableFindWidget: true,
+        allowScripts: true,
+        sandbox: {
+          allowScripts: true,
+          allowForm: true,
+        },
+      }
+    );
+  }
 
-    // Display loading message initially with animation
-    newsPanel.webview.html = getLoadingMessage(true);
+  // Display loading message initially with animation
+  newsPanel.webview.html = getLoadingMessage(true);
 
-    // If transfer news data is not fetched yet, fetch it
-    if (!transferNewsData) {
-        fetchTransferNewsData().then(newsData => {
-            transferNewsData = newsData;
-            displayTransferNews();
-        }).catch(error => {
-            console.error('Error fetching transfer news data:', error);
-            vscode.window.showErrorMessage('Error fetching transfer news data');
-        });
-    } else {
-        // If transfer news data is already fetched, display it with animation
-        displayTransferNews(true);
-    }
+  // If transfer news data is not fetched yet, fetch it
+  if (!transferNewsData) {
+    fetchTransferNewsData()
+      .then((newsData) => {
+        transferNewsData = newsData;
+        displayTransferNews();
+      })
+      .catch((error) => {
+        console.error("Error fetching transfer news data:", error);
+        vscode.window.showErrorMessage("Error fetching transfer news data");
+      });
+  } else {
+    // If transfer news data is already fetched, display it with animation
+    displayTransferNews(true);
+  }
 }
 
 // Function to display loading message
 // Function to display loading message with football icon animation
 
-
-
 // Function to fetch transfer news data
 async function fetchTransferNewsData() {
-    const options = {
-        method: 'GET',
-        url: 'https://football_api12.p.rapidapi.com/players/transfers',
-        headers: {
-            'X-RapidAPI-Key': '82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0',
-            'X-RapidAPI-Host': 'football_api12.p.rapidapi.com'
-        }
-    };
+  const options = {
+    method: "GET",
+    url: "https://football_api12.p.rapidapi.com/players/transfers",
+    headers: {
+      "X-RapidAPI-Key": "82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0",
+      "X-RapidAPI-Host": "football_api12.p.rapidapi.com",
+    },
+  };
 
-    try {
-        const response = await axios.request(options);
-        console.log(response.data);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+  try {
+    const response = await axios.request(options);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
 // Function to display transfer news in webview
 function displayTransferNews(animate = false) {
-    if (newsPanel && transferNewsData) {
-        const transferNewsHTML = transferNewsData.map(news => `
+  if (newsPanel && transferNewsData) {
+    const transferNewsHTML = transferNewsData
+      .map(
+        (news) => `
             <div class="news-item">
                 <h3>${news.title}</h3>
                 <p class="source">Source: ${news.source}</p>
                 <a href="${news.url}" target="_blank">Read more</a>
             </div>
-        `).join('');
+        `
+      )
+      .join("");
 
-        newsPanel.webview.html = `
+    newsPanel.webview.html = `
             <html>
             <head>
                 <style>
@@ -332,7 +350,7 @@ function displayTransferNews(animate = false) {
                     .news-item .source { font-size: 12px; color: #666; }
                     .news-item a { color: #007acc; text-decoration: none; }
                     .news-item a:hover { text-decoration: underline; }
-                    ${animate ? '.news-item { animation: fadein 2s; }' : ''}
+                    ${animate ? ".news-item { animation: fadein 2s; }" : ""}
                     @keyframes fadein {
                         from { opacity: 0; }
                         to   { opacity: 1; }
@@ -345,87 +363,96 @@ function displayTransferNews(animate = false) {
             </body>
             </html>
         `;
-    }
+  }
 }
 
 // Function to show API data panel
 function showAPIPanel(context) {
-    if (!apiPanel) {
-        apiPanel = vscode.window.createWebviewPanel(
-            'apiData',
-            `Today's Fixtures`,
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
-                enableCommandUris: true,
-                enableFindWidget: true,
-                allowScripts: true,
-                sandbox: {
-                    allowScripts: true,
-                    allowFor: true
-                },
-                iconPath: vscode.Uri.file(path.join(context.extensionPath, 'media', 'football.png')) // Provide the path to your icon file
+  if (!apiPanel) {
+    apiPanel = vscode.window.createWebviewPanel(
+      "apiData",
+      `Today's Fixtures`,
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, "media")),
+        ],
+        enableCommandUris: true,
+        enableFindWidget: true,
+        allowScripts: true,
+        sandbox: {
+          allowScripts: true,
+          allowFor: true,
+        },
+        iconPath: vscode.Uri.file(
+          path.join(context.extensionPath, "media", "football.png")
+        ), // Provide the path to your icon file
+      }
+    );
+  }
 
-            }
-        );
-    }
+  // Display loading message initially with animation
+  apiPanel.webview.html = getLoadingMessage(true);
 
-    // Display loading message initially with animation
-    apiPanel.webview.html = getLoadingMessage(true);
-
-    // Fetch data from API and display it with animation
-    fetchDataFromAPI().then(data => {
-        if (data) {
-            // If data is received, display it in the webview with animation
-            apiPanel.webview.html = getAPIWebviewContent(data, true);
-        } else {
-            // If no data is received, display a message
-            apiPanel.webview.html = '<p>No data available</p>';
-        }
-    }).catch(error => {
-        console.error('Error fetching data from API:', error);
-        vscode.window.showErrorMessage('Error fetching data from API');
+  // Fetch data from API and display it with animation
+  fetchDataFromAPI()
+    .then((data) => {
+      if (data) {
+        // If data is received, display it in the webview with animation
+        apiPanel.webview.html = getAPIWebviewContent(data, true);
+      } else {
+        // If no data is received, display a message
+        apiPanel.webview.html = "<p>No data available</p>";
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching data from API:", error);
+      vscode.window.showErrorMessage("Error fetching data from API");
     });
 }
 
 // Function to fetch data from API
 async function fetchDataFromAPI() {
-    const options = {
-        method: 'GET',
-        url: 'https://football_api12.p.rapidapi.com/players/fixtures',
-        headers: {
-            'X-RapidAPI-Key': '82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0',
-            'X-RapidAPI-Host': 'football_api12.p.rapidapi.com'
-        }
-    };
-    
-    try {
-        const response = await axios.request(options);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+  const options = {
+    method: "GET",
+    url: "https://football_api12.p.rapidapi.com/players/fixtures",
+    headers: {
+      "X-RapidAPI-Key": "82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0",
+      "X-RapidAPI-Host": "football_api12.p.rapidapi.com",
+    },
+  };
+
+  try {
+    const response = await axios.request(options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
 // Function to generate HTML content for API data
 function getAPIWebviewContent(data, animate = false) {
-    if (!data || data.length === 0) {
-        return '<p>No data available</p>';
-    }
-    const fixturesHTML = data.map(fixture => `
+  if (!data || data.length === 0) {
+    return "<p>No data available</p>";
+  }
+  const fixturesHTML = data
+    .map(
+      (fixture) => `
         <div class="fixture">
             <p><strong>Team A:</strong> ${fixture.teamA}</p>
             <p><strong>Team B:</strong> ${fixture.teamB}</p>
-            <p><strong>Time:</strong> ${fixture.timing}</p>
-            <p><strong>MatchOver:</strong> ${fixture.scoreA}</p>
-            <p><strong>Day:</strong> ${fixture.scoreB}</p>
+            <p><strong>Time:</strong> ${fixture.time}</p>
+            <p><strong>MatchOver:</strong> ${fixture.matchOver}</p>
+            <p><strong>Day:</strong> ${fixture.day}</p>
         </div>
-    `).join('');
+    `
+    )
+    .join("");
 
-    return `
+  return `
         <html>
         <head>
             <style>
@@ -433,7 +460,114 @@ function getAPIWebviewContent(data, animate = false) {
                 .fixture { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
                 .fixture p { margin: 5px 0; }
                 .fixture strong { font-weight: bold; }
-                ${animate ? '.fixture { animation: fadein 2s; }' : ''}
+                ${animate ? ".fixture { animation: fadein 2s; }" : ""}
+                @keyframes fadein {
+                    from { opacity: 0; }
+                    to   { opacity: 1; }
+                }
+            </style>
+        </head>
+        <body>
+            <h2>Today's Fixtures</h2>
+            <h3>Fixture</h3>
+            ${fixturesHTML}
+        </body>
+        </html>
+    `;
+}
+function showAPIPanel1(context) {
+  if (!apiPanel) {
+    apiPanel = vscode.window.createWebviewPanel(
+      "apiData",
+      `Get all  Fixtures`,
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, "media")),
+        ],
+        enableCommandUris: true,
+        enableFindWidget: true,
+        allowScripts: true,
+        sandbox: {
+          allowScripts: true,
+          allowFor: true,
+        },
+        iconPath: vscode.Uri.file(
+          path.join(context.extensionPath, "media", "football.png")
+        ), // Provide the path to your icon file
+      }
+    );
+  }
+
+  // Display loading message initially with animation
+  apiPanel.webview.html = getLoadingMessage(true);
+
+  // Fetch data from API and display it with animation
+  fetchDataFromAPI1()
+    .then((data) => {
+      if (data) {
+        // If data is received, display it in the webview with animation
+        apiPanel.webview.html = getAPIWebviewContent2(data, true);
+      } else {
+        // If no data is received, display a message
+        apiPanel.webview.html = "<p>No data available</p>";
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching data from API:", error);
+      vscode.window.showErrorMessage("Error fetching data from API");
+    });
+}
+
+// Function to fetch data from API
+async function fetchDataFromAPI1() {
+  const options = {
+    method: "GET",
+    url: "https://football_api12.p.rapidapi.com/players/allFixtures",
+    headers: {
+      "X-RapidAPI-Key": "82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0",
+      "X-RapidAPI-Host": "football_api12.p.rapidapi.com",
+    },
+  };
+
+  try {
+    const response = await axios.request(options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
+
+// Function to generate HTML content for API data
+function getAPIWebviewContent2(data, animate = false) {
+  if (!data || data.length === 0) {
+    return "<p>No data available</p>";
+  }
+  const fixturesHTML = data
+    .map(
+      (fixture) => `
+        <div class="fixture">
+            <p><strong>Team A:</strong> ${fixture.teamA}</p>
+            <p><strong>Team B:</strong> ${fixture.teamB}</p>
+            <p><strong>Time:</strong> ${fixture.time}</p>
+            <p><strong>Date:</strong> ${fixture.date}</p>
+        </div>
+    `
+    )
+    .join("");
+
+  return `
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; }
+                .fixture { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
+                .fixture p { margin: 5px 0; }
+                .fixture strong { font-weight: bold; }
+                ${animate ? ".fixture { animation: fadein 2s; }" : ""}
                 @keyframes fadein {
                     from { opacity: 0; }
                     to   { opacity: 1; }
@@ -449,70 +583,77 @@ function getAPIWebviewContent(data, animate = false) {
     `;
 }
 function showLiveScore(context) {
-    if (!apiPanel) {
-        apiPanel = vscode.window.createWebviewPanel(
-            'apiData',
-            `Live Score`,
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
-                enableCommandUris: true,
-                enableFindWidget: true,
-                allowScripts: true,
-                sandbox: {
-                    allowScripts: true,
-                    allowFor: true
-                },
-                iconPath: vscode.Uri.file(path.join(context.extensionPath, 'media', 'football.png')) // Provide the path to your icon file
+  if (!apiPanel) {
+    apiPanel = vscode.window.createWebviewPanel(
+      "apiData",
+      `Live Score`,
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, "media")),
+        ],
+        enableCommandUris: true,
+        enableFindWidget: true,
+        allowScripts: true,
+        sandbox: {
+          allowScripts: true,
+          allowFor: true,
+        },
+        iconPath: vscode.Uri.file(
+          path.join(context.extensionPath, "media", "football.png")
+        ), // Provide the path to your icon file
+      }
+    );
+  }
 
-            }
-        );
-    }
+  // Display loading message initially with animation
+  apiPanel.webview.html = getLoadingMessage(true);
 
-    // Display loading message initially with animation
-    apiPanel.webview.html = getLoadingMessage(true);
-
-    // Fetch data from API and display it with animation
-    fetchDataForLiveScore().then(data => {
-        if (data) {
-            // If data is received, display it in the webview with animation
-            apiPanel.webview.html = getAPIWebviewContent1(data, true);
-        } else {
-            // If no data is received, display a message
-            apiPanel.webview.html = '<p>No data available</p>';
-        }
-    }).catch(error => {
-        console.error('Error fetching data from API:', error);
-        vscode.window.showErrorMessage('Error fetching data from API');
+  // Fetch data from API and display it with animation
+  fetchDataForLiveScore()
+    .then((data) => {
+      if (data) {
+        // If data is received, display it in the webview with animation
+        apiPanel.webview.html = getAPIWebviewContent1(data, true);
+      } else {
+        // If no data is received, display a message
+        apiPanel.webview.html = "<p>No data available</p>";
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching data from API:", error);
+      vscode.window.showErrorMessage("Error fetching data from API");
     });
 }
 
 async function fetchDataForLiveScore() {
-    const options = {
-        method: 'GET',
-        url: 'https://football_api12.p.rapidapi.com/players/livescore',
-        headers: {
-            'X-RapidAPI-Key': '82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0',
-            'X-RapidAPI-Host': 'football_api12.p.rapidapi.com'
-        }
-    };
-    
-    try {
-        const response = await axios.request(options);
-        console.log(response.data)
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+  const options = {
+    method: "GET",
+    url: "https://football_api12.p.rapidapi.com/players/livescore",
+    headers: {
+      "X-RapidAPI-Key": "82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0",
+      "X-RapidAPI-Host": "football_api12.p.rapidapi.com",
+    },
+  };
+
+  try {
+    const response = await axios.request(options);
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 function getAPIWebviewContent1(data, animate = false) {
-    if (!data || data.length === 0) {
-        return '<p>No data available</p>';
-    }
-    const liveScoreHTML = data.map(fixture => `
+  if (!data || data.length === 0) {
+    return "<p>No data available</p>";
+  }
+  const liveScoreHTML = data
+    .map(
+      (fixture) => `
         <div class="fixture">
             <p><strong>Team A:</strong> ${fixture.teamA}</p>
             <p><strong>Team B:</strong> ${fixture.teamB}</p>
@@ -520,9 +661,11 @@ function getAPIWebviewContent1(data, animate = false) {
             <p><strong>Score for Team A:</strong> ${fixture.scoreB}</p>
             <p><strong>Time in GMT:</strong> ${fixture.timing}</p>
         </div>
-    `).join('');
+    `
+    )
+    .join("");
 
-    return `
+  return `
         <html>
         <head>
             <style>
@@ -530,7 +673,7 @@ function getAPIWebviewContent1(data, animate = false) {
                 .fixture { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; }
                 .fixture p { margin: 5px 0; }
                 .fixture strong { font-weight: bold; }
-                ${animate ? '.fixture { animation: fadein 2s; }' : ''}
+                ${animate ? ".fixture { animation: fadein 2s; }" : ""}
                 @keyframes fadein {
                     from { opacity: 0; }
                     to   { opacity: 1; }
@@ -538,7 +681,7 @@ function getAPIWebviewContent1(data, animate = false) {
             </style>
         </head>
         <body>
-            <h2>lIVE sCORE</h2>
+            <h2>LIVE SCORE</h2>
             <h3>Fixture</h3>
             ${liveScoreHTML}
         </body>
@@ -548,80 +691,89 @@ function getAPIWebviewContent1(data, animate = false) {
 
 // Function to show news panel
 function showNewsPanel(context) {
-    if (!newsPanel) {
-        newsPanel = vscode.window.createWebviewPanel(
-            'newsData',
-            'News Data',
-            vscode.ViewColumn.One,
-            {
-                enableScripts: true,
-                retainContextWhenHidden: true,
-                localResourceRoots: [vscode.Uri.file(path.join(context.extensionPath, 'media'))],
-                enableCommandUris: true,
-                enableFindWidget: true,
-                allowScripts: true,
-                sandbox: {
-                    allowScripts: true,
-                    allowForm: true
-                },
-                iconPath: vscode.Uri.parse('https://pngbuy.com/wp-content/uploads/2023/01/Cristiano-Ronaldo-PNGBUY-5.jpg') // Specify the link for the icon
+  if (!newsPanel) {
+    newsPanel = vscode.window.createWebviewPanel(
+      "newsData",
+      "News Data",
+      vscode.ViewColumn.One,
+      {
+        enableScripts: true,
+        retainContextWhenHidden: true,
+        localResourceRoots: [
+          vscode.Uri.file(path.join(context.extensionPath, "media")),
+        ],
+        enableCommandUris: true,
+        enableFindWidget: true,
+        allowScripts: true,
+        sandbox: {
+          allowScripts: true,
+          allowForm: true,
+        },
+        iconPath: vscode.Uri.parse(
+          "https://pngbuy.com/wp-content/uploads/2023/01/Cristiano-Ronaldo-PNGBUY-5.jpg"
+        ), // Specify the link for the icon
+      }
+    );
+  }
 
-            }
-        );
-    }
+  // Display loading message initially with animation
+  newsPanel.webview.html = getLoadingMessage(true);
 
-    // Display loading message initially with animation
-    newsPanel.webview.html = getLoadingMessage(true);
-
-    // Fetch news data and display it with animation
-    fetchDataFromNewsAPI().then(newsData => {
-        if (newsData) {
-            // If data is received, display it in the webview with animation
-            newsPanel.webview.html = getNewsWebviewContent(newsData, true);
-        } else {
-            // If no data is received, display a message
-            newsPanel.webview.html = '<p>No news available</p>';
-        }
-    }).catch(error => {
-        console.error('Error fetching news data:', error);
-        vscode.window.showErrorMessage('Error fetching news data');
+  // Fetch news data and display it with animation
+  fetchDataFromNewsAPI()
+    .then((newsData) => {
+      if (newsData) {
+        // If data is received, display it in the webview with animation
+        newsPanel.webview.html = getNewsWebviewContent(newsData, true);
+      } else {
+        // If no data is received, display a message
+        newsPanel.webview.html = "<p>No news available</p>";
+      }
+    })
+    .catch((error) => {
+      console.error("Error fetching news data:", error);
+      vscode.window.showErrorMessage("Error fetching news data");
     });
 }
 
 // Function to fetch data from news API
 async function fetchDataFromNewsAPI() {
-    const options = {
-        method: 'GET',
-        url: 'https://football_api12.p.rapidapi.com/players/news',
-        headers: {
-            'X-RapidAPI-Key': '82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0',
-            'X-RapidAPI-Host': 'football_api12.p.rapidapi.com'
-        }
-    };
+  const options = {
+    method: "GET",
+    url: "https://football_api12.p.rapidapi.com/players/news",
+    headers: {
+      "X-RapidAPI-Key": "82387cf1damsh116d052c22df5efp141526jsn6bf172d5abe0",
+      "X-RapidAPI-Host": "football_api12.p.rapidapi.com",
+    },
+  };
 
-    try {
-        const response = await axios.request(options);
-        return response.data;
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
+  try {
+    const response = await axios.request(options);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
 }
 
 // Function to generate HTML content for news data
 function getNewsWebviewContent(newsData, animate = false) {
-    if (!newsData || newsData.length === 0) {
-        return '<p>No news available</p>';
-    }
-    const newsHTML = newsData.map(news => `
+  if (!newsData || newsData.length === 0) {
+    return "<p>No news available</p>";
+  }
+  const newsHTML = newsData
+    .map(
+      (news) => `
         <div class="news-item">
             <h3>${news.headLine}</h3>
             <p class="source">Source: ${news.source}</p>
             <a href="${news.url}" target="_blank">Read more</a>
         </div>
-    `).join('');
+    `
+    )
+    .join("");
 
-    return `
+  return `
         <html>
         <head>
             <style>
@@ -631,7 +783,7 @@ function getNewsWebviewContent(newsData, animate = false) {
                 .news-item .source { font-size: 12px; color: #666; }
                 .news-item a { color: #007acc; text-decoration: none; }
                 .news-item a:hover { text-decoration: underline; }
-                ${animate ? '.news-item { animation: fadein 2s; }' : ''}
+                ${animate ? ".news-item { animation: fadein 2s; }" : ""}
                 @keyframes fadein {
                     from { opacity: 0; }
                     to   { opacity: 1; }
@@ -649,72 +801,87 @@ function getNewsWebviewContent(newsData, animate = false) {
 // Activate function
 // Activate function
 function activate(context) {
-    console.log('Congratulations, your extension "mytodo" is now active!');
-    createPersistentPanel(context);
+  console.log('Congratulations, your extension "mytodo" is now active!');
+  createPersistentPanel(context);
 
-    // Register commands and their handlers
-    let disposable = vscode.commands.registerCommand('mytodo.helloWorld', function () {
-        vscode.window.showInformationMessage('Hello World from mytodo!');
-    });
+  // Register commands and their handlers
+  let disposable = vscode.commands.registerCommand(
+    "mytodo.helloWorld",
+    function () {
+      vscode.window.showInformationMessage("Hello World from mytodo!");
+    }
+  );
 
- 
-    
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openAPIPanel', () => {
-        // Open API data panel
-        showAPIPanel(context);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openLiveScore', () => {
-        // Open API data panel
-        showLiveScore(context);
-    }));
-    
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openNewsPanel', () => {
-        // Open news data panel
-        showNewsPanel(context);
-    }));
-    
-  
-    
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openTransferNewsPanel', () => {
-        // Open transfer news data panel
-        showTransferNewsPanel(context);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openMatchResultsPanel', () => {
-        // Open match results panel
-        showMatchResultsPanel(context);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openCricketMatchPanel', () => {
-        // Open cricket match data panel
-        showCricketMatchPanel(context);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openCricketMatch', () => {
-        // Open current cricket matches panel
-        showCurrentCricketMatchesPanel(context);
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('mytodo.openCricketSeriesPanel', () => {
-        // Open cricket series panel
-        showCricketSeriesPanel(context);
-    }));
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openAPIPanel", () => {
+      // Open API data panel
+      showAPIPanel(context);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openAllFixtures", () => {
+      // Open API data panel
+      showAPIPanel1(context);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openLiveScore", () => {
+      // Open API data panel
+      showLiveScore(context);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openNewsPanel", () => {
+      // Open news data panel
+      showNewsPanel(context);
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openTransferNewsPanel", () => {
+      // Open transfer news data panel
+      showTransferNewsPanel(context);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openMatchResultsPanel", () => {
+      // Open match results panel
+      showMatchResultsPanel(context);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openCricketMatchPanel", () => {
+      // Open cricket match data panel
+      showCricketMatchPanel(context);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openCricketMatch", () => {
+      // Open current cricket matches panel
+      showCurrentCricketMatchesPanel(context);
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("mytodo.openCricketSeriesPanel", () => {
+      // Open cricket series panel
+      showCricketSeriesPanel(context);
+    })
+  );
 }
 
 // Deactivate function
 function deactivate() {}
 
 module.exports = {
-    activate,
-    deactivate
+  activate,
+  deactivate,
 };
 
-
-
-
-
-
 // Deactivate function
-function deactivate() {
-}
+function deactivate() {}
 
 module.exports = {
-    activate,
-    deactivate
+  activate,
+  deactivate,
 };
