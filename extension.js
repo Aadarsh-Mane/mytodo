@@ -125,7 +125,7 @@ function createPersistentPanel(context) {
                 <p>Command: Get live cricket</p>
                 <p>Command:Get current match </p>
                 <p>Command:Get upcoming series</p>
-                <h3>Don't forget to give a review Click <a href="https://marketplace.visualstudio.com/items?itemName=addy.mytodo&ssr=false#review-details">here</a> ⭐.</h2>
+                <h3>Don't forget  give a review Click <a href="https://marketplace.visualstudio.com/items?itemName=addy.mytodo&ssr=false#review-details">here</a> ⭐.</h2>
                         
                     </div>
                     <div class="panel-item">
@@ -413,7 +413,6 @@ function showAPIPanel(context) {
     });
 }
 
-// Function to fetch data from API
 async function fetchDataFromAPI() {
   const options = {
     method: "GET",
@@ -426,6 +425,13 @@ async function fetchDataFromAPI() {
 
   try {
     const response = await axios.request(options);
+    // Check if the response contains the message "no fixtures"
+    if (
+      response.data.message &&
+      response.data.message === "Todays fixtures are not available"
+    ) {
+      return [];
+    }
     return response.data;
   } catch (error) {
     console.error(error);
@@ -505,20 +511,15 @@ function showAPIPanel1(context) {
   apiPanel.webview.html = getLoadingMessage(true);
 
   // Fetch data from API and display it with animation
-  fetchDataFromAPI1()
-    .then((data) => {
-      if (data) {
-        // If data is received, display it in the webview with animation
-        apiPanel.webview.html = getAPIWebviewContent2(data, true);
-      } else {
-        // If no data is received, display a message
-        apiPanel.webview.html = "<p>No data available</p>";
-      }
-    })
-    .catch((error) => {
-      console.error("Error fetching data from API:", error);
-      vscode.window.showErrorMessage("Error fetching data from API");
-    });
+  fetchDataFromAPI1().then((data) => {
+    if (data) {
+      // If data is received, display it in the webview with animation
+      apiPanel.webview.html = getAPIWebviewContent2(data, true);
+    } else {
+      // If no data is received, display a message
+      apiPanel.webview.html = "<p>No data available</p>";
+    }
+  });
 }
 
 // Function to fetch data from API
